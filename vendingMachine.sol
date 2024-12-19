@@ -13,6 +13,7 @@ contract VendingMachine {
     //Events
     event newSnackadded (string _name, uint _price);
     event snackRestocked (uint32 _id, uint16 _quantity);
+    event snackSold (uint32 _id, uint16 _quantity);
 
     //Variables
     address payable private owner;
@@ -56,24 +57,37 @@ contract VendingMachine {
 
     function restock (uint32 _id, uint16 _quantity) external onlyOwner
     {
-        require (_id <= totalSnacks, "The snack doesn't exists.");
+        require (_id <= stock.length, "The snack doesn't exists.");
         require (_quantity > 0, "Null amount.");
 
-        //Posicionamos el producto que queremos eliminar al final del array y lo eliminamos con .pop()
-        stock[_id] = stock[stock.length - 1]; 
-        stock.pop();
-
-        snacks[_id].quantity += _quantity;
-        stock.push(snacks[_id]);
-        
+        stock[_id].quantity += _quantity;
         emit snackRestocked(_id, _quantity);
     }
 
+    function buySnack (uint32 _id, uint16 _quantity) external payable
+    {
+        require (_id <= totalSnacks, "The snack doesn't exists.");
+        require (stock[_id].quantity >= _quantity,  "Insufficient stock.");
+        
+        uint totalPrice = stock[_id].price * _quantity;
+        require(totalPrice <= msg.value, "Insufficient funds.");
 
+        stock[_id].quantity -= _quantity;
+    }
+
+    function getMachineBalance () external view onlyOwner returns (uint)
+    {
+        return address(this).balance;
+    }
+
+    function withDraw () external onlyOwner 
+    {
+        owner.transfer(address(this).balance);
+    }
+    
     //Modifier
     modifier onlyOwner {
         require (owner == msg.sender, "Null operation, only the owner can do this.");
         _;
     }
-
 }
