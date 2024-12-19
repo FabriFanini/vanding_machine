@@ -12,6 +12,7 @@ contract VendingMachine {
 
     //Events
     event newSnackadded (string _name, uint _price);
+    event snackRestocked (uint32 _id, uint16 _quantity);
 
     //Variables
     address payable private owner;
@@ -36,7 +37,7 @@ contract VendingMachine {
         return(keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b)));
     }
 
-    function purchaseSnack (string memory _name, uint16 _quantity, uint8 _price) external onlyOwner
+    function addNewSnack (string memory _name, uint16 _quantity, uint8 _price) external onlyOwner
     {
         require (bytes(_name).length > 0, "Null name");
         require (_quantity > 0, "Null amount");
@@ -51,6 +52,21 @@ contract VendingMachine {
         totalSnacks ++;
 
         emit newSnackadded(_name, _price);
+    }
+
+    function restock (uint32 _id, uint16 _quantity) external onlyOwner
+    {
+        require (_id <= totalSnacks, "The snack doesn't exists.");
+        require (_quantity > 0, "Null amount.");
+
+        //Posicionamos el producto que queremos eliminar al final del array y lo eliminamos con .pop()
+        stock[_id] = stock[stock.length - 1]; 
+        stock.pop();
+
+        snacks[_id].quantity += _quantity;
+        stock.push(snacks[_id]);
+        
+        emit snackRestocked(_id, _quantity);
     }
 
 
