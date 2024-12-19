@@ -54,11 +54,3 @@ The contract includes the following functionalities:
 ## Notes
 
 - This contract is designed for educational purposes and is not ready for production environments.
-- Future improvements could include:
-  - More robust authentication for owner functions.
-  - Support for multiple currencies or tokens.
-  - Enhanced error handling and validations.
-
-## License
-
-This project is licensed under the GPL-3.0. Refer to the code for more details.
