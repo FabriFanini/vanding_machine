@@ -1,29 +1,31 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.7.0 <0.9.0;
 
-contract VendingMachine {
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+contract VendingMachine is Ownable{
+    
     //Struct
     struct Snack {
         uint32 id;
         string name;
         uint16 quantity;
-        uint8 price;
+        uint64 price;
     }
+
+    //Variables
+    mapping (uint32 => Snack) snacks;
+    Snack [] stock;
+
+    uint32 totalSnacks;
 
     //Events
     event newSnackadded (string _name, uint _price);
     event snackRestocked (uint32 _id, uint16 _quantity);
     event snackSold (uint32 _id, uint16 _quantity);
 
-    //Variables
-    address payable private owner;
-    mapping (uint32 => Snack) snacks;
-    Snack [] stock;
-    uint32 totalSnacks;
-
     //Constructor
-    constructor (){
-        owner = payable(msg.sender);
+    constructor () Ownable(msg.sender){
         totalSnacks = 0;
     }
 
@@ -44,11 +46,11 @@ contract VendingMachine {
         require (_quantity > 0, "Null amount");
         require (_price > 0, "Null price");
 
-        for (uint32 i = 0; i < totalSnacks; i++){
+        for (uint8 i = 0; i < totalSnacks; i++){
             require(!compareStrings(_name, snacks[i].name));
         }
 
-        snacks[totalSnacks] = Snack(totalSnacks, _name, _quantity, _price);
+        snacks[totalSnacks] = Snack(totalSnacks, _name, _quantity, _price * (10**18));
         stock.push(snacks[totalSnacks]);
         totalSnacks ++;
 
@@ -82,12 +84,6 @@ contract VendingMachine {
 
     function withDraw () external onlyOwner 
     {
-        owner.transfer(address(this).balance);
-    }
-    
-    //Modifier
-    modifier onlyOwner {
-        require (owner == msg.sender, "Null operation, only the owner can do this.");
-        _;
+        payable(owner()).transfer(address(this).balance);
     }
 }
